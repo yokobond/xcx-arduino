@@ -1,0 +1,14 @@
+{
+  "en": {
+    "xcxArduino.entry.name": "Arduino",
+    "xcxArduino.entry.description": "Description of this extension"
+  },
+  "ja": {
+    "xcxArduino.entry.name": "Arduino",
+    "xcxArduino.entry.description": "拡張機能の説明"
+  },
+  "ja-Hira": {
+    "xcxArduino.entry.name": "Arduino",
+    "xcxArduino.entry.description": "かくちょうきのうのせつめい"
+  }
+}

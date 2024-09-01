@@ -1,0 +1,14 @@
+{
+  "en": {
+    "xcxArduino.name": "Arduino",
+    "xcxArduino.doIt": "do it [SCRIPT]"
+  },
+  "ja": {
+    "xcxArduino.name": "Arduino",
+    "xcxArduino.doIt": "[SCRIPT] を実行する"
+  },
+  "ja-Hira": {
+    "xcxArduino.name": "Arduino",
+    "xcxArduino.doIt": "[SCRIPT] をじっこうする"
+  }
+}
