@@ -4,6 +4,8 @@
 
 import iconURL from './entry-icon.png';
 import insetIconURL from './inset-icon.svg';
+import connectionIconURL from './connection-icon.svg';
+import connectionSmallIconURL from './connection-small-icon.svg';
 import translations from './translations.json';
 
 /**
@@ -38,6 +40,8 @@ const entry = {
     disabled: false,
     bluetoothRequired: false,
     internetConnectionRequired: false,
+    connectionIconURL: connectionIconURL,
+    connectionSmallIconURL: connectionSmallIconURL,
     helpLink: 'https://yokobond.github.io/xcx-arduino/',
     setFormatMessage: formatter => {
         formatMessage = formatter;
