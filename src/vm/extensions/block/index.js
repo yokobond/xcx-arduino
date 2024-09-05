@@ -352,15 +352,15 @@ class ArduinoBlocks {
             ],
             menus: {
                 digitalPinIndexMenu: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: 'getDigitalPinIndexMenu'
                 },
                 pwmPinIndexMenu: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: 'getPWMPinIndexMenu'
                 },
                 servoPinIndexMenu: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: 'getServoPinIndexMenu'
                 },
                 digitalLevelMenu: {
