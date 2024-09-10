@@ -1,14 +1,56 @@
 {
   "en": {
     "xcxArduino.name": "Arduino",
-    "xcxArduino.doIt": "do it [SCRIPT]"
+    "xcxArduino.A0": "A0",
+    "xcxArduino.A1": "A1",
+    "xcxArduino.A2": "A2",
+    "xcxArduino.A3": "A3",
+    "xcxArduino.A4": "A4",
+    "xcxArduino.A5": "A5",
+    "xcxArduino.getDigitalLevel": "D[PIN]",
+    "xcxArduino.setInputBias": "Set D[PIN] input bias [BIAS]",
+    "xcxArduino.setDigitalLevel": "Set D[PIN] to [LEVEL]",
+    "xcxArduino.setAnalogLevel": "PWM [PIN] set duty cycle [LEVEL]%",
+    "xcxArduino.servoTurn": "Servo [PIN] turn [ANGLE] degrees",
+    "xcxArduino.digitalValueMenu.Low": "0",
+    "xcxArduino.digitalValueMenu.High": "1",
+    "xcxArduino.inputBiasMenu.none": "none",
+    "xcxArduino.inputBiasMenu.pullUp": "pull up"
   },
   "ja": {
     "xcxArduino.name": "Arduino",
-    "xcxArduino.doIt": "[SCRIPT] を実行する"
+    "xcxArduino.A0": "A0",
+    "xcxArduino.A1": "A1",
+    "xcxArduino.A2": "A2",
+    "xcxArduino.A3": "A3",
+    "xcxArduino.A4": "A4",
+    "xcxArduino.A5": "A5",
+    "xcxArduino.getDigitalLevel": "D[PIN]",
+    "xcxArduino.setInputBias": "D[PIN] の入力バイアスを [BIAS] にする",
+    "xcxArduino.setDigitalLevel": "D[PIN] を [LEVEL] にする",
+    "xcxArduino.setAnalogLevel": "PWM [PIN] のデューティー比を [LEVEL]% にする",
+    "xcxArduino.servoTurn": "サーボ [PIN] を [ANGLE] 度回す",
+    "xcxArduino.digitalValueMenu.Low": "0",
+    "xcxArduino.digitalValueMenu.High": "1",
+    "xcxArduino.inputBiasMenu.none": "なし",
+    "xcxArduino.inputBiasMenu.pullUp": "プルアップ"
   },
   "ja-Hira": {
     "xcxArduino.name": "Arduino",
-    "xcxArduino.doIt": "[SCRIPT] をじっこうする"
+    "xcxArduino.A0": "A0",
+    "xcxArduino.A1": "A1",
+    "xcxArduino.A2": "A2",
+    "xcxArduino.A3": "A3",
+    "xcxArduino.A4": "A4",
+    "xcxArduino.A5": "A5",
+    "xcxArduino.getDigitalLevel": "D[PIN]",
+    "xcxArduino.setInputBias": "D[PIN] の にゅうりょくばいあす を [BIAS] に する",
+    "xcxArduino.setDigitalLevel": "D[PIN] を [LEVEL] に する",
+    "xcxArduino.setAnalogLevel": "PWM [PIN] の でゅーてぃーひ を [LEVEL]% に する",
+    "xcxArduino.servoTurn": "サーボ [PIN] を [ANGLE] ど まわす",
+    "xcxArduino.digitalValueMenu.Low": "0",
+    "xcxArduino.digitalValueMenu.High": "1",
+    "xcxArduino.inputBiasMenu.none": "なし",
+    "xcxArduino.inputBiasMenu.pullUp": "プルアップ"
   }
 }
