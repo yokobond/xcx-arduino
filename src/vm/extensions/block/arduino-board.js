@@ -255,10 +255,14 @@ class ArduinoBoard extends EventEmitter{
     releaseBoard () {
         this.state = 'disconnect';
         if (this.firmata) {
-            if (this.firmata.transport) {
-                this.firmata.transport.close();
+            try {
+                if (this.firmata.transport && this.firmata.isOpen) {
+                    this.firmata.transport.close();
+                }
+                this.firmata.removeAllListeners();
+            } catch (error) {
+                console.error(error);
             }
-            this.firmata.removeAllListeners();
             this.firmata = null;
         }
         this.extensionId = null;
