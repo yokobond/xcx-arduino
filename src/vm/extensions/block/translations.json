@@ -10,7 +10,7 @@
     "xcxArduino.getDigitalLevel": "D[PIN]",
     "xcxArduino.setInputBias": "Set D[PIN] input bias [BIAS]",
     "xcxArduino.setDigitalLevel": "Set D[PIN] to [LEVEL]",
-    "xcxArduino.setAnalogLevel": "PWM [PIN] set duty cycle [LEVEL]%",
+    "xcxArduino.setAnalogLevel": "Analog [PIN] set power [LEVEL]%",
     "xcxArduino.servoTurn": "Servo [PIN] turn [ANGLE] degrees",
     "xcxArduino.digitalValueMenu.Low": "0",
     "xcxArduino.digitalValueMenu.High": "1",

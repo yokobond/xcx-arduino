@@ -89,7 +89,7 @@ function toPrimitive(t, r) {
   if ("object" != _typeof$1(t) || !t) return t;
   var e = t[Symbol.toPrimitive];
   if (void 0 !== e) {
-    var i = e.call(t, r || "default");
+    var i = e.call(t, r);
     if ("object" != _typeof$1(i)) return i;
     throw new TypeError("@@toPrimitive must return a primitive value.");
   }
@@ -104,12 +104,12 @@ function toPropertyKey(t) {
 function _defineProperties(e, r) {
   for (var t = 0; t < r.length; t++) {
     var o = r[t];
-    o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, toPropertyKey(o.key), o);
+    o.enumerable = o.enumerable || false, o.configurable = true, "value" in o && (o.writable = true), Object.defineProperty(e, toPropertyKey(o.key), o);
   }
 }
 function _createClass(e, r, t) {
   return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", {
-    writable: !1
+    writable: false
   }), e;
 }
 
@@ -509,13 +509,6 @@ var Cast = /*#__PURE__*/function () {
         }
         return value;
       }
-      if (typeof value === 'string') {
-        // Replace full-width numbers with half-width ones.
-        value = value.replace(/[０-９＋．ｅ]/g, function (s) {
-          return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-        });
-        value = value.replace(/[-－﹣−‐⁃‑‒–—﹘―⎯⏤ーｰ─━]/g, '-');
-      }
       var n = Number(value);
       if (Number.isNaN(n)) {
         // Scratch treats NaN as 0, when needed as a number.
@@ -559,7 +552,7 @@ var Cast = /*#__PURE__*/function () {
   }, {
     key: "toString",
     value: function toString(value) {
-      return String(value).replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+      return String(value);
     }
 
     /**
@@ -630,8 +623,8 @@ var Cast = /*#__PURE__*/function () {
       if (isNaN(n1) || isNaN(n2)) {
         // At least one argument can't be converted to a number.
         // Scratch compares strings as case insensitive.
-        var s1 = Cast.toString(v1).toLowerCase();
-        var s2 = Cast.toString(v2).toLowerCase();
+        var s1 = String(v1).toLowerCase();
+        var s2 = String(v2).toLowerCase();
         if (s1 < s2) {
           return -1;
         } else if (s1 > s2) {
@@ -734,7 +727,7 @@ var en = {
 	"xcxArduino.getDigitalLevel": "D[PIN]",
 	"xcxArduino.setInputBias": "Set D[PIN] input bias [BIAS]",
 	"xcxArduino.setDigitalLevel": "Set D[PIN] to [LEVEL]",
-	"xcxArduino.setAnalogLevel": "PWM [PIN] set duty cycle [LEVEL]%",
+	"xcxArduino.setAnalogLevel": "Analog [PIN] set power [LEVEL]%",
 	"xcxArduino.servoTurn": "Servo [PIN] turn [ANGLE] degrees",
 	"xcxArduino.digitalValueMenu.Low": "0",
 	"xcxArduino.digitalValueMenu.High": "1",
@@ -812,11 +805,11 @@ function _inherits(t, e) {
   t.prototype = Object.create(e && e.prototype, {
     constructor: {
       value: t,
-      writable: !0,
-      configurable: !0
+      writable: true,
+      configurable: true
     }
   }), Object.defineProperty(t, "prototype", {
-    writable: !1
+    writable: false
   }), e && _setPrototypeOf(t, e);
 }
 
@@ -828,29 +821,31 @@ var domain;
 function EventHandlers() {}
 EventHandlers.prototype = Object.create(null);
 
-function EventEmitter$1() {
-  EventEmitter$1.init.call(this);
+function EventEmitter() {
+  EventEmitter.init.call(this);
 }
 
 // nodejs oddity
 // require('events') === require('events').EventEmitter
-EventEmitter$1.EventEmitter = EventEmitter$1;
+EventEmitter.EventEmitter = EventEmitter;
 
-EventEmitter$1.usingDomains = false;
+EventEmitter.usingDomains = false;
 
-EventEmitter$1.prototype.domain = undefined;
-EventEmitter$1.prototype._events = undefined;
-EventEmitter$1.prototype._maxListeners = undefined;
+EventEmitter.prototype.domain = undefined;
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
 
 // By default EventEmitters will print a warning if more than 10 listeners are
 // added to it. This is a useful default which helps finding memory leaks.
-EventEmitter$1.defaultMaxListeners = 10;
+EventEmitter.defaultMaxListeners = 10;
 
-EventEmitter$1.init = function() {
+EventEmitter.init = function() {
   this.domain = null;
-  if (EventEmitter$1.usingDomains) {
+  if (EventEmitter.usingDomains) {
     // if there is an active domain, then attach to it.
-    if (domain.active) ;
+    if (domain.active && !(this instanceof domain.Domain)) {
+      this.domain = domain.active;
+    }
   }
 
   if (!this._events || this._events === Object.getPrototypeOf(this)._events) {
@@ -863,7 +858,7 @@ EventEmitter$1.init = function() {
 
 // Obviously not all Emitters should be limited to 10. This function allows
 // that to be increased. Set to zero for unlimited.
-EventEmitter$1.prototype.setMaxListeners = function setMaxListeners(n) {
+EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
   if (typeof n !== 'number' || n < 0 || isNaN(n))
     throw new TypeError('"n" argument must be a positive number');
   this._maxListeners = n;
@@ -872,11 +867,11 @@ EventEmitter$1.prototype.setMaxListeners = function setMaxListeners(n) {
 
 function $getMaxListeners(that) {
   if (that._maxListeners === undefined)
-    return EventEmitter$1.defaultMaxListeners;
+    return EventEmitter.defaultMaxListeners;
   return that._maxListeners;
 }
 
-EventEmitter$1.prototype.getMaxListeners = function getMaxListeners() {
+EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
   return $getMaxListeners(this);
 };
 
@@ -937,7 +932,7 @@ function emitMany(handler, isFn, self, args) {
   }
 }
 
-EventEmitter$1.prototype.emit = function emit(type) {
+EventEmitter.prototype.emit = function emit(type) {
   var er, handler, len, args, i, events, domain;
   var doError = (type === 'error');
 
@@ -1068,13 +1063,13 @@ function _addListener(target, type, listener, prepend) {
 function emitWarning(e) {
   typeof console.warn === 'function' ? console.warn(e) : console.log(e);
 }
-EventEmitter$1.prototype.addListener = function addListener(type, listener) {
+EventEmitter.prototype.addListener = function addListener(type, listener) {
   return _addListener(this, type, listener, false);
 };
 
-EventEmitter$1.prototype.on = EventEmitter$1.prototype.addListener;
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
-EventEmitter$1.prototype.prependListener =
+EventEmitter.prototype.prependListener =
     function prependListener(type, listener) {
       return _addListener(this, type, listener, true);
     };
@@ -1092,14 +1087,14 @@ function _onceWrap(target, type, listener) {
   return g;
 }
 
-EventEmitter$1.prototype.once = function once(type, listener) {
+EventEmitter.prototype.once = function once(type, listener) {
   if (typeof listener !== 'function')
     throw new TypeError('"listener" argument must be a function');
   this.on(type, _onceWrap(this, type, listener));
   return this;
 };
 
-EventEmitter$1.prototype.prependOnceListener =
+EventEmitter.prototype.prependOnceListener =
     function prependOnceListener(type, listener) {
       if (typeof listener !== 'function')
         throw new TypeError('"listener" argument must be a function');
@@ -1108,7 +1103,7 @@ EventEmitter$1.prototype.prependOnceListener =
     };
 
 // emits a 'removeListener' event iff the listener was removed
-EventEmitter$1.prototype.removeListener =
+EventEmitter.prototype.removeListener =
     function removeListener(type, listener) {
       var list, events, position, i, originalListener;
 
@@ -1167,11 +1162,11 @@ EventEmitter$1.prototype.removeListener =
     
 // Alias for removeListener added in NodeJS 10.0
 // https://nodejs.org/api/events.html#events_emitter_off_eventname_listener
-EventEmitter$1.prototype.off = function(type, listener){
+EventEmitter.prototype.off = function(type, listener){
     return this.removeListener(type, listener);
 };
 
-EventEmitter$1.prototype.removeAllListeners =
+EventEmitter.prototype.removeAllListeners =
     function removeAllListeners(type) {
       var listeners, events;
 
@@ -1221,7 +1216,7 @@ EventEmitter$1.prototype.removeAllListeners =
       return this;
     };
 
-EventEmitter$1.prototype.listeners = function listeners(type) {
+EventEmitter.prototype.listeners = function listeners(type) {
   var evlistener;
   var ret;
   var events = this._events;
@@ -1241,7 +1236,7 @@ EventEmitter$1.prototype.listeners = function listeners(type) {
   return ret;
 };
 
-EventEmitter$1.listenerCount = function(emitter, type) {
+EventEmitter.listenerCount = function(emitter, type) {
   if (typeof emitter.listenerCount === 'function') {
     return emitter.listenerCount(type);
   } else {
@@ -1249,7 +1244,7 @@ EventEmitter$1.listenerCount = function(emitter, type) {
   }
 };
 
-EventEmitter$1.prototype.listenerCount = listenerCount$1;
+EventEmitter.prototype.listenerCount = listenerCount$1;
 function listenerCount$1(type) {
   var events = this._events;
 
@@ -1266,7 +1261,7 @@ function listenerCount$1(type) {
   return 0;
 }
 
-EventEmitter$1.prototype.eventNames = function eventNames() {
+EventEmitter.prototype.eventNames = function eventNames() {
   return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
 };
 
@@ -1294,8 +1289,8 @@ function unwrapListeners(arr) {
 
 var _polyfillNode_events = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  EventEmitter: EventEmitter$1,
-  default: EventEmitter$1
+  EventEmitter: EventEmitter,
+  default: EventEmitter
 });
 
 function asyncGeneratorStep(n, t, e, r, o, a, c) {
@@ -1326,6 +1321,222 @@ function _asyncToGenerator(n) {
 
 var regeneratorRuntime$1 = {exports: {}};
 
+var OverloadYield = {exports: {}};
+
+(function (module) {
+  function _OverloadYield(e, d) {
+    this.v = e, this.k = d;
+  }
+  module.exports = _OverloadYield, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(OverloadYield);
+var OverloadYieldExports = OverloadYield.exports;
+
+var regenerator$1 = {exports: {}};
+
+var regeneratorDefine = {exports: {}};
+
+(function (module) {
+  function _regeneratorDefine(e, r, n, t) {
+    var i = Object.defineProperty;
+    try {
+      i({}, "", {});
+    } catch (e) {
+      i = 0;
+    }
+    module.exports = _regeneratorDefine = function regeneratorDefine(e, r, n, t) {
+      function o(r, n) {
+        _regeneratorDefine(e, r, function (e) {
+          return this._invoke(r, n, e);
+        });
+      }
+      r ? i ? i(e, r, {
+        value: n,
+        enumerable: !t,
+        configurable: !t,
+        writable: !t
+      }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2));
+    }, module.exports.__esModule = true, module.exports["default"] = module.exports, _regeneratorDefine(e, r, n, t);
+  }
+  module.exports = _regeneratorDefine, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(regeneratorDefine);
+var regeneratorDefineExports = regeneratorDefine.exports;
+
+(function (module) {
+  var regeneratorDefine = regeneratorDefineExports;
+  function _regenerator() {
+    /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */
+    var e,
+      t,
+      r = "function" == typeof Symbol ? Symbol : {},
+      n = r.iterator || "@@iterator",
+      o = r.toStringTag || "@@toStringTag";
+    function i(r, n, o, i) {
+      var c = n && n.prototype instanceof Generator ? n : Generator,
+        u = Object.create(c.prototype);
+      return regeneratorDefine(u, "_invoke", function (r, n, o) {
+        var i,
+          c,
+          u,
+          f = 0,
+          p = o || [],
+          y = false,
+          G = {
+            p: 0,
+            n: 0,
+            v: e,
+            a: d,
+            f: d.bind(e, 4),
+            d: function d(t, r) {
+              return i = t, c = 0, u = e, G.n = r, a;
+            }
+          };
+        function d(r, n) {
+          for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) {
+            var o,
+              i = p[t],
+              d = G.p,
+              l = i[2];
+            r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0));
+          }
+          if (o || r > 1) return a;
+          throw y = true, n;
+        }
+        return function (o, p, l) {
+          if (f > 1) throw TypeError("Generator is already running");
+          for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) {
+            i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u);
+            try {
+              if (f = 2, i) {
+                if (c || (o = "next"), t = i[o]) {
+                  if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object");
+                  if (!t.done) return t;
+                  u = t.value, c < 2 && (c = 0);
+                } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1);
+                i = e;
+              } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break;
+            } catch (t) {
+              i = e, c = 1, u = t;
+            } finally {
+              f = 1;
+            }
+          }
+          return {
+            value: t,
+            done: y
+          };
+        };
+      }(r, o, i), true), u;
+    }
+    var a = {};
+    function Generator() {}
+    function GeneratorFunction() {}
+    function GeneratorFunctionPrototype() {}
+    t = Object.getPrototypeOf;
+    var c = [][n] ? t(t([][n]())) : (regeneratorDefine(t = {}, n, function () {
+        return this;
+      }), t),
+      u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c);
+    function f(e) {
+      return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, regeneratorDefine(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e;
+    }
+    return GeneratorFunction.prototype = GeneratorFunctionPrototype, regeneratorDefine(u, "constructor", GeneratorFunctionPrototype), regeneratorDefine(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", regeneratorDefine(GeneratorFunctionPrototype, o, "GeneratorFunction"), regeneratorDefine(u), regeneratorDefine(u, o, "Generator"), regeneratorDefine(u, n, function () {
+      return this;
+    }), regeneratorDefine(u, "toString", function () {
+      return "[object Generator]";
+    }), (module.exports = _regenerator = function _regenerator() {
+      return {
+        w: i,
+        m: f
+      };
+    }, module.exports.__esModule = true, module.exports["default"] = module.exports)();
+  }
+  module.exports = _regenerator, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(regenerator$1);
+var regeneratorExports = regenerator$1.exports;
+
+var regeneratorAsync = {exports: {}};
+
+var regeneratorAsyncGen = {exports: {}};
+
+var regeneratorAsyncIterator = {exports: {}};
+
+(function (module) {
+  var OverloadYield = OverloadYieldExports;
+  var regeneratorDefine = regeneratorDefineExports;
+  function AsyncIterator(t, e) {
+    function n(r, o, i, f) {
+      try {
+        var c = t[r](o),
+          u = c.value;
+        return u instanceof OverloadYield ? e.resolve(u.v).then(function (t) {
+          n("next", t, i, f);
+        }, function (t) {
+          n("throw", t, i, f);
+        }) : e.resolve(u).then(function (t) {
+          c.value = t, i(c);
+        }, function (t) {
+          return n("throw", t, i, f);
+        });
+      } catch (t) {
+        f(t);
+      }
+    }
+    var r;
+    this.next || (regeneratorDefine(AsyncIterator.prototype), regeneratorDefine(AsyncIterator.prototype, "function" == typeof Symbol && Symbol.asyncIterator || "@asyncIterator", function () {
+      return this;
+    })), regeneratorDefine(this, "_invoke", function (t, o, i) {
+      function f() {
+        return new e(function (e, r) {
+          n(t, i, e, r);
+        });
+      }
+      return r = r ? r.then(f, f) : f();
+    }, true);
+  }
+  module.exports = AsyncIterator, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(regeneratorAsyncIterator);
+var regeneratorAsyncIteratorExports = regeneratorAsyncIterator.exports;
+
+(function (module) {
+  var regenerator = regeneratorExports;
+  var regeneratorAsyncIterator = regeneratorAsyncIteratorExports;
+  function _regeneratorAsyncGen(r, e, t, o, n) {
+    return new regeneratorAsyncIterator(regenerator().w(r, e, t, o), n || Promise);
+  }
+  module.exports = _regeneratorAsyncGen, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(regeneratorAsyncGen);
+var regeneratorAsyncGenExports = regeneratorAsyncGen.exports;
+
+(function (module) {
+  var regeneratorAsyncGen = regeneratorAsyncGenExports;
+  function _regeneratorAsync(n, e, r, t, o) {
+    var a = regeneratorAsyncGen(n, e, r, t, o);
+    return a.next().then(function (n) {
+      return n.done ? n.value : a.next();
+    });
+  }
+  module.exports = _regeneratorAsync, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(regeneratorAsync);
+var regeneratorAsyncExports = regeneratorAsync.exports;
+
+var regeneratorKeys = {exports: {}};
+
+(function (module) {
+  function _regeneratorKeys(e) {
+    var n = Object(e),
+      r = [];
+    for (var t in n) r.unshift(t);
+    return function e() {
+      for (; r.length;) if ((t = r.pop()) in n) return e.value = t, e.done = false, e;
+      return e.done = true, e;
+    };
+  }
+  module.exports = _regeneratorKeys, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(regeneratorKeys);
+var regeneratorKeysExports = regeneratorKeys.exports;
+
+var regeneratorValues = {exports: {}};
+
 var _typeof = {exports: {}};
 
 (function (module) {
@@ -1344,308 +1555,102 @@ var _typeofExports = _typeof.exports;
 
 (function (module) {
   var _typeof = _typeofExports["default"];
-  function _regeneratorRuntime() {
-
-    /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
-    module.exports = _regeneratorRuntime = function _regeneratorRuntime() {
-      return e;
-    }, module.exports.__esModule = true, module.exports["default"] = module.exports;
-    var t,
-      e = {},
-      r = Object.prototype,
-      n = r.hasOwnProperty,
-      o = Object.defineProperty || function (t, e, r) {
-        t[e] = r.value;
-      },
-      i = "function" == typeof Symbol ? Symbol : {},
-      a = i.iterator || "@@iterator",
-      c = i.asyncIterator || "@@asyncIterator",
-      u = i.toStringTag || "@@toStringTag";
-    function define(t, e, r) {
-      return Object.defineProperty(t, e, {
-        value: r,
-        enumerable: !0,
-        configurable: !0,
-        writable: !0
-      }), t[e];
-    }
-    try {
-      define({}, "");
-    } catch (t) {
-      define = function define(t, e, r) {
-        return t[e] = r;
-      };
-    }
-    function wrap(t, e, r, n) {
-      var i = e && e.prototype instanceof Generator ? e : Generator,
-        a = Object.create(i.prototype),
-        c = new Context(n || []);
-      return o(a, "_invoke", {
-        value: makeInvokeMethod(t, r, c)
-      }), a;
-    }
-    function tryCatch(t, e, r) {
-      try {
-        return {
-          type: "normal",
-          arg: t.call(e, r)
-        };
-      } catch (t) {
-        return {
-          type: "throw",
-          arg: t
-        };
-      }
-    }
-    e.wrap = wrap;
-    var h = "suspendedStart",
-      l = "suspendedYield",
-      f = "executing",
-      s = "completed",
-      y = {};
-    function Generator() {}
-    function GeneratorFunction() {}
-    function GeneratorFunctionPrototype() {}
-    var p = {};
-    define(p, a, function () {
-      return this;
-    });
-    var d = Object.getPrototypeOf,
-      v = d && d(d(values([])));
-    v && v !== r && n.call(v, a) && (p = v);
-    var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p);
-    function defineIteratorMethods(t) {
-      ["next", "throw", "return"].forEach(function (e) {
-        define(t, e, function (t) {
-          return this._invoke(e, t);
-        });
-      });
-    }
-    function AsyncIterator(t, e) {
-      function invoke(r, o, i, a) {
-        var c = tryCatch(t[r], t, o);
-        if ("throw" !== c.type) {
-          var u = c.arg,
-            h = u.value;
-          return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) {
-            invoke("next", t, i, a);
-          }, function (t) {
-            invoke("throw", t, i, a);
-          }) : e.resolve(h).then(function (t) {
-            u.value = t, i(u);
-          }, function (t) {
-            return invoke("throw", t, i, a);
-          });
-        }
-        a(c.arg);
-      }
-      var r;
-      o(this, "_invoke", {
-        value: function value(t, n) {
-          function callInvokeWithMethodAndArg() {
-            return new e(function (e, r) {
-              invoke(t, n, e, r);
-            });
-          }
-          return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
-        }
-      });
-    }
-    function makeInvokeMethod(e, r, n) {
-      var o = h;
-      return function (i, a) {
-        if (o === f) throw Error("Generator is already running");
-        if (o === s) {
-          if ("throw" === i) throw a;
-          return {
-            value: t,
-            done: !0
+  function _regeneratorValues(e) {
+    if (null != e) {
+      var t = e["function" == typeof Symbol && Symbol.iterator || "@@iterator"],
+        r = 0;
+      if (t) return t.call(e);
+      if ("function" == typeof e.next) return e;
+      if (!isNaN(e.length)) return {
+        next: function next() {
+          return e && r >= e.length && (e = void 0), {
+            value: e && e[r++],
+            done: !e
           };
         }
-        for (n.method = i, n.arg = a;;) {
-          var c = n.delegate;
-          if (c) {
-            var u = maybeInvokeDelegate(c, n);
-            if (u) {
-              if (u === y) continue;
-              return u;
-            }
+      };
+    }
+    throw new TypeError(_typeof(e) + " is not iterable");
+  }
+  module.exports = _regeneratorValues, module.exports.__esModule = true, module.exports["default"] = module.exports;
+})(regeneratorValues);
+var regeneratorValuesExports = regeneratorValues.exports;
+
+(function (module) {
+  var OverloadYield = OverloadYieldExports;
+  var regenerator = regeneratorExports;
+  var regeneratorAsync = regeneratorAsyncExports;
+  var regeneratorAsyncGen = regeneratorAsyncGenExports;
+  var regeneratorAsyncIterator = regeneratorAsyncIteratorExports;
+  var regeneratorKeys = regeneratorKeysExports;
+  var regeneratorValues = regeneratorValuesExports;
+  function _regeneratorRuntime() {
+
+    var r = regenerator(),
+      e = r.m(_regeneratorRuntime),
+      t = (Object.getPrototypeOf ? Object.getPrototypeOf(e) : e.__proto__).constructor;
+    function n(r) {
+      var e = "function" == typeof r && r.constructor;
+      return !!e && (e === t || "GeneratorFunction" === (e.displayName || e.name));
+    }
+    var o = {
+      "throw": 1,
+      "return": 2,
+      "break": 3,
+      "continue": 3
+    };
+    function a(r) {
+      var e, t;
+      return function (n) {
+        e || (e = {
+          stop: function stop() {
+            return t(n.a, 2);
+          },
+          "catch": function _catch() {
+            return n.v;
+          },
+          abrupt: function abrupt(r, e) {
+            return t(n.a, o[r], e);
+          },
+          delegateYield: function delegateYield(r, o, a) {
+            return e.resultName = o, t(n.d, regeneratorValues(r), a);
+          },
+          finish: function finish(r) {
+            return t(n.f, r);
           }
-          if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) {
-            if (o === h) throw o = s, n.arg;
-            n.dispatchException(n.arg);
-          } else "return" === n.method && n.abrupt("return", n.arg);
-          o = f;
-          var p = tryCatch(e, r, n);
-          if ("normal" === p.type) {
-            if (o = n.done ? s : l, p.arg === y) continue;
-            return {
-              value: p.arg,
-              done: n.done
-            };
+        }, t = function t(r, _t, o) {
+          n.p = e.prev, n.n = e.next;
+          try {
+            return r(_t, o);
+          } finally {
+            e.next = n.n;
           }
-          "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg);
+        }), e.resultName && (e[e.resultName] = n.v, e.resultName = void 0), e.sent = n.v, e.next = n.n;
+        try {
+          return r.call(this, e);
+        } finally {
+          n.p = e.prev, n.n = e.next;
         }
       };
     }
-    function maybeInvokeDelegate(e, r) {
-      var n = r.method,
-        o = e.iterator[n];
-      if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y;
-      var i = tryCatch(o, e.iterator, r.arg);
-      if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y;
-      var a = i.arg;
-      return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y);
-    }
-    function pushTryEntry(t) {
-      var e = {
-        tryLoc: t[0]
-      };
-      1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e);
-    }
-    function resetTryEntry(t) {
-      var e = t.completion || {};
-      e.type = "normal", delete e.arg, t.completion = e;
-    }
-    function Context(t) {
-      this.tryEntries = [{
-        tryLoc: "root"
-      }], t.forEach(pushTryEntry, this), this.reset(!0);
-    }
-    function values(e) {
-      if (e || "" === e) {
-        var r = e[a];
-        if (r) return r.call(e);
-        if ("function" == typeof e.next) return e;
-        if (!isNaN(e.length)) {
-          var o = -1,
-            i = function next() {
-              for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next;
-              return next.value = t, next.done = !0, next;
-            };
-          return i.next = i;
-        }
-      }
-      throw new TypeError(_typeof(e) + " is not iterable");
-    }
-    return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", {
-      value: GeneratorFunctionPrototype,
-      configurable: !0
-    }), o(GeneratorFunctionPrototype, "constructor", {
-      value: GeneratorFunction,
-      configurable: !0
-    }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) {
-      var e = "function" == typeof t && t.constructor;
-      return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name));
-    }, e.mark = function (t) {
-      return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t;
-    }, e.awrap = function (t) {
+    return (module.exports = _regeneratorRuntime = function _regeneratorRuntime() {
       return {
-        __await: t
+        wrap: function wrap(e, t, n, o) {
+          return r.w(a(e), t, n, o && o.reverse());
+        },
+        isGeneratorFunction: n,
+        mark: r.m,
+        awrap: function awrap(r, e) {
+          return new OverloadYield(r, e);
+        },
+        AsyncIterator: regeneratorAsyncIterator,
+        async: function async(r, e, t, o, u) {
+          return (n(e) ? regeneratorAsyncGen : regeneratorAsync)(a(r), e, t, o, u);
+        },
+        keys: regeneratorKeys,
+        values: regeneratorValues
       };
-    }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () {
-      return this;
-    }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) {
-      void 0 === i && (i = Promise);
-      var a = new AsyncIterator(wrap(t, r, n, o), i);
-      return e.isGeneratorFunction(r) ? a : a.next().then(function (t) {
-        return t.done ? t.value : a.next();
-      });
-    }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () {
-      return this;
-    }), define(g, "toString", function () {
-      return "[object Generator]";
-    }), e.keys = function (t) {
-      var e = Object(t),
-        r = [];
-      for (var n in e) r.push(n);
-      return r.reverse(), function next() {
-        for (; r.length;) {
-          var t = r.pop();
-          if (t in e) return next.value = t, next.done = !1, next;
-        }
-        return next.done = !0, next;
-      };
-    }, e.values = values, Context.prototype = {
-      constructor: Context,
-      reset: function reset(e) {
-        if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t);
-      },
-      stop: function stop() {
-        this.done = !0;
-        var t = this.tryEntries[0].completion;
-        if ("throw" === t.type) throw t.arg;
-        return this.rval;
-      },
-      dispatchException: function dispatchException(e) {
-        if (this.done) throw e;
-        var r = this;
-        function handle(n, o) {
-          return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o;
-        }
-        for (var o = this.tryEntries.length - 1; o >= 0; --o) {
-          var i = this.tryEntries[o],
-            a = i.completion;
-          if ("root" === i.tryLoc) return handle("end");
-          if (i.tryLoc <= this.prev) {
-            var c = n.call(i, "catchLoc"),
-              u = n.call(i, "finallyLoc");
-            if (c && u) {
-              if (this.prev < i.catchLoc) return handle(i.catchLoc, !0);
-              if (this.prev < i.finallyLoc) return handle(i.finallyLoc);
-            } else if (c) {
-              if (this.prev < i.catchLoc) return handle(i.catchLoc, !0);
-            } else {
-              if (!u) throw Error("try statement without catch or finally");
-              if (this.prev < i.finallyLoc) return handle(i.finallyLoc);
-            }
-          }
-        }
-      },
-      abrupt: function abrupt(t, e) {
-        for (var r = this.tryEntries.length - 1; r >= 0; --r) {
-          var o = this.tryEntries[r];
-          if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) {
-            var i = o;
-            break;
-          }
-        }
-        i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null);
-        var a = i ? i.completion : {};
-        return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a);
-      },
-      complete: function complete(t, e) {
-        if ("throw" === t.type) throw t.arg;
-        return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y;
-      },
-      finish: function finish(t) {
-        for (var e = this.tryEntries.length - 1; e >= 0; --e) {
-          var r = this.tryEntries[e];
-          if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y;
-        }
-      },
-      "catch": function _catch(t) {
-        for (var e = this.tryEntries.length - 1; e >= 0; --e) {
-          var r = this.tryEntries[e];
-          if (r.tryLoc === t) {
-            var n = r.completion;
-            if ("throw" === n.type) {
-              var o = n.arg;
-              resetTryEntry(r);
-            }
-            return o;
-          }
-        }
-        throw Error("illegal catch attempt");
-      },
-      delegateYield: function delegateYield(e, r, n) {
-        return this.delegate = {
-          iterator: values(e),
-          resultName: r,
-          nextLoc: n
-        }, "next" === this.method && (this.arg = t), y;
-      }
-    }, e;
+    }, module.exports.__esModule = true, module.exports["default"] = module.exports)();
   }
   module.exports = _regeneratorRuntime, module.exports.__esModule = true, module.exports["default"] = module.exports;
 })(regeneratorRuntime$1);
@@ -1668,25 +1673,25 @@ try {
 }
 var _regeneratorRuntime = /*@__PURE__*/getDefaultExportFromCjs(regenerator);
 
-function _arrayLikeToArray$2(r, a) {
+function _arrayLikeToArray$3(r, a) {
   (null == a || a > r.length) && (a = r.length);
   for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
   return n;
 }
 
 function _arrayWithoutHoles(r) {
-  if (Array.isArray(r)) return _arrayLikeToArray$2(r);
+  if (Array.isArray(r)) return _arrayLikeToArray$3(r);
 }
 
 function _iterableToArray(r) {
   if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r);
 }
 
-function _unsupportedIterableToArray$2(r, a) {
+function _unsupportedIterableToArray$3(r, a) {
   if (r) {
-    if ("string" == typeof r) return _arrayLikeToArray$2(r, a);
+    if ("string" == typeof r) return _arrayLikeToArray$3(r, a);
     var t = {}.toString.call(r).slice(8, -1);
-    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray$2(r, a) : void 0;
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray$3(r, a) : void 0;
   }
 }
 
@@ -1695,15 +1700,15 @@ function _nonIterableSpread() {
 }
 
 function _toConsumableArray(r) {
-  return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray$2(r) || _nonIterableSpread();
+  return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray$3(r) || _nonIterableSpread();
 }
 
 function _defineProperty(e, r, t) {
   return (r = toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
     value: t,
-    enumerable: !0,
-    configurable: !0,
-    writable: !0
+    enumerable: true,
+    configurable: true,
+    writable: true
   }) : e[r] = t, e;
 }
 
@@ -2549,8 +2554,8 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
     byteOffset = 0;
   } else if (byteOffset > 0x7fffffff) {
     byteOffset = 0x7fffffff;
-  } else if (byteOffset < -0x80000000) {
-    byteOffset = -0x80000000;
+  } else if (byteOffset < -2147483648) {
+    byteOffset = -2147483648;
   }
   byteOffset = +byteOffset;  // Coerce to Number.
   if (isNaN(byteOffset)) {
@@ -3309,7 +3314,7 @@ Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, no
 Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80);
+  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -128);
   if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
   if (value < 0) value = 0xff + value + 1;
   this[offset] = (value & 0xff);
@@ -3319,7 +3324,7 @@ Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
 Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -32768);
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value & 0xff);
     this[offset + 1] = (value >>> 8);
@@ -3332,7 +3337,7 @@ Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) 
 Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -32768);
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 8);
     this[offset + 1] = (value & 0xff);
@@ -3345,7 +3350,7 @@ Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) 
 Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -2147483648);
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value & 0xff);
     this[offset + 1] = (value >>> 8);
@@ -3360,7 +3365,7 @@ Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) 
 Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
   value = +value;
   offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -2147483648);
   if (value < 0) value = 0xffffffff + value + 1;
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 24);
@@ -3912,9 +3917,9 @@ var browser$1$1 = {
 
 var require$$0$1 = /*@__PURE__*/getAugmentedNamespace(_polyfillNode_events);
 
-function _createForOfIteratorHelper$1(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray$1(r)) || e) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
-function _unsupportedIterableToArray$1(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray$1(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray$1(r, a) : void 0; } }
-function _arrayLikeToArray$1(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _createForOfIteratorHelper$2(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray$2(r)) || e) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: true } : { done: false, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = true, u = false; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = true, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray$2(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray$2(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray$2(r, a) : void 0; } }
+function _arrayLikeToArray$2(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 /**
  * "Inspired" by Encoder7Bit.h/Encoder7Bit.cpp in the
  * Firmata source code.
@@ -3924,7 +3929,7 @@ var encoder7bit = {
     var shift = 0;
     var previous = 0;
     var output = [];
-    var _iterator = _createForOfIteratorHelper$1(data),
+    var _iterator = _createForOfIteratorHelper$2(data),
       _step;
     try {
       for (_iterator.s(); !(_step = _iterator.n()).done;) {
@@ -3969,14 +3974,14 @@ var encoder7bit = {
   }
 };
 
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _createForOfIteratorHelper$1(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray$1(r)) || e) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: true } : { done: false, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = true, u = false; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = true, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray$1(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray$1(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray$1(r, a) : void 0; } }
+function _arrayLikeToArray$1(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 var Encoder7Bit$1 = encoder7bit;
 var OneWireUtils = {
   crc8: function crc8(data) {
     var crc = 0;
-    var _iterator = _createForOfIteratorHelper(data),
+    var _iterator = _createForOfIteratorHelper$1(data),
       _step;
     try {
       for (_iterator.s(); !(_step = _iterator.n()).done;) {
@@ -4021,7 +4026,7 @@ function _callSuper$3(t, o, e) { return o = _getPrototypeOf(o), _possibleConstru
 function _isNativeReflectConstruct$3() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct$3 = function _isNativeReflectConstruct() { return !!t; })(); }
 
 // Built-in Dependencies
-var EventEmitter = require$$0$1.EventEmitter;
+var Emitter = require$$0$1;
 
 // Internal Dependencies
 var Encoder7Bit = encoder7bit;
@@ -4321,7 +4326,7 @@ var Transport = null;
  * @property buffer An array holding the current bytes received from the arduino.
  * @property {SerialPort} sp The serial port object used to communicate with the arduino.
  */
-var Firmata$1 = /*#__PURE__*/function (_EventEmitter) {
+var Firmata$1 = /*#__PURE__*/function (_Emitter) {
   function Firmata(port, options, callback) {
     var _this;
     _classCallCheck(this, Firmata);
@@ -4447,7 +4452,7 @@ var Firmata$1 = /*#__PURE__*/function (_EventEmitter) {
     }
     _this.transport.on("close", function (event) {
       // https://github.com/node-serialport/node-serialport/blob/5.0.0/UPGRADE_GUIDE.md#opening-and-closing
-      if (event && event.disconnected) {
+      if (event && event.disconnect && event.disconnected) {
         _this.emit("disconnect");
         return;
       }
@@ -4630,7 +4635,7 @@ var Firmata$1 = /*#__PURE__*/function (_EventEmitter) {
    * Asks the arduino to tell us its version.
    * @param {function} callback A function to be called when the arduino has reported its version.
    */
-  _inherits(Firmata, _EventEmitter);
+  _inherits(Firmata, _Emitter);
   return _createClass(Firmata, [{
     key: "reportVersion",
     value: function reportVersion(callback) {
@@ -4658,7 +4663,7 @@ var Firmata$1 = /*#__PURE__*/function (_EventEmitter) {
     key: "analogRead",
     value: function analogRead(pin, callback) {
       this.reportAnalogPin(pin, 1);
-      this.once("analog-read-".concat(pin), callback);
+      this.addListener("analog-read-".concat(pin), callback);
     }
 
     /**
@@ -4835,7 +4840,7 @@ var Firmata$1 = /*#__PURE__*/function (_EventEmitter) {
     key: "digitalRead",
     value: function digitalRead(pin, callback) {
       this.reportDigitalPin(pin, 1);
-      this.once("digital-read-".concat(pin), callback);
+      this.addListener("digital-read-".concat(pin), callback);
     }
 
     /**
@@ -5975,7 +5980,7 @@ var Firmata$1 = /*#__PURE__*/function (_EventEmitter) {
       return decoded;
     }
   }]);
-}(EventEmitter); // Prototype Compatibility Aliases
+}(Emitter); // Prototype Compatibility Aliases
 Firmata$1.prototype.analogWrite = Firmata$1.prototype.pwmWrite;
 
 // Static Compatibility Aliases
@@ -6139,7 +6144,6 @@ if (typeof Object.create === 'function'){
     ctor.prototype.constructor = ctor;
   };
 }
-var inherits$1 = inherits;
 
 var getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors ||
   function getOwnPropertyDescriptors(obj) {
@@ -6787,7 +6791,7 @@ function callbackify(original) {
 }
 
 var _polyfillNode_util = {
-  inherits: inherits$1,
+  inherits: inherits,
   _extend: _extend,
   log: log,
   isBuffer: isBuffer,
@@ -6821,7 +6825,7 @@ var _polyfillNode_util$1 = /*#__PURE__*/Object.freeze({
   default: _polyfillNode_util,
   deprecate: deprecate,
   format: format,
-  inherits: inherits$1,
+  inherits: inherits,
   inspect: inspect,
   isArray: isArray,
   isBoolean: isBoolean,
@@ -7120,7 +7124,7 @@ function base64DetectIncompleteChar(buffer) {
 Readable.ReadableState = ReadableState;
 
 var debug$2 = debuglog('stream');
-inherits$1(Readable, EventEmitter$1);
+inherits(Readable, EventEmitter);
 
 function prependListener(emitter, event, fn) {
   // Sadly this is not cacheable as some libraries bundle their own
@@ -7220,7 +7224,7 @@ function Readable(options) {
 
   if (options && typeof options.read === 'function') this._read = options.read;
 
-  EventEmitter$1.call(this);
+  EventEmitter.call(this);
 }
 
 // Manually shove something into the read() buffer.
@@ -7728,7 +7732,7 @@ Readable.prototype.unpipe = function (dest) {
 // set up data events if they are asked for
 // Ensure readable listeners eventually get something
 Readable.prototype.on = function (ev, fn) {
-  var res = EventEmitter$1.prototype.on.call(this, ev, fn);
+  var res = EventEmitter.prototype.on.call(this, ev, fn);
 
   if (ev === 'data') {
     // Start flowing on next tick if stream isn't explicitly paused
@@ -8009,7 +8013,7 @@ function indexOf(xs, x) {
 // the drain event emission and buffering.
 
 Writable.WritableState = WritableState;
-inherits$1(Writable, EventEmitter$1);
+inherits(Writable, EventEmitter);
 
 function nop() {}
 
@@ -8144,7 +8148,7 @@ function Writable(options) {
     if (typeof options.writev === 'function') this._writev = options.writev;
   }
 
-  EventEmitter$1.call(this);
+  EventEmitter.call(this);
 }
 
 // Otherwise people can pipe Writable streams, which is just wrong.
@@ -8480,7 +8484,7 @@ function CorkedRequest(state) {
   };
 }
 
-inherits$1(Duplex, Readable);
+inherits(Duplex, Readable);
 
 var keys = Object.keys(Writable.prototype);
 for (var v = 0; v < keys.length; v++) {
@@ -8560,7 +8564,7 @@ function onEndNT(self) {
 // would be consumed, and then the rest would wait (un-transformed) until
 // the results of the previous transformed chunk were consumed.
 
-inherits$1(Transform, Duplex);
+inherits(Transform, Duplex);
 
 function TransformState(stream) {
   this.afterTransform = function (er, data) {
@@ -8687,7 +8691,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-inherits$1(PassThrough, Transform);
+inherits(PassThrough, Transform);
 function PassThrough(options) {
   if (!(this instanceof PassThrough)) return new PassThrough(options);
 
@@ -8698,7 +8702,7 @@ PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-inherits$1(Stream, EventEmitter$1);
+inherits(Stream, EventEmitter);
 Stream.Readable = Readable;
 Stream.Writable = Writable;
 Stream.Duplex = Duplex;
@@ -8712,7 +8716,7 @@ Stream.Stream = Stream;
 // part of this class) is overridden in the Readable class.
 
 function Stream() {
-  EventEmitter$1.call(this);
+  EventEmitter.call(this);
 }
 
 Stream.prototype.pipe = function(dest, options) {
@@ -8762,7 +8766,7 @@ Stream.prototype.pipe = function(dest, options) {
   // don't leave dangling pipes when there are errors.
   function onerror(er) {
     cleanup();
-    if (EventEmitter$1.listenerCount(this, 'error') === 0) {
+    if (EventEmitter.listenerCount(this, 'error') === 0) {
       throw er; // Unhandled stream error in pipe.
     }
   }
@@ -8976,6 +8980,10 @@ function requireMs() {
   return ms;
 }
 
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: true } : { done: false, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = true, u = false; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = true, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+
 /**
  * This is the common logic for both the Node.js and web browser
  * implementations of `debug()`.
@@ -9132,21 +9140,65 @@ function setup(env) {
     createDebug.namespaces = namespaces;
     createDebug.names = [];
     createDebug.skips = [];
-    var i;
-    var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-    var len = split.length;
-    for (i = 0; i < len; i++) {
-      if (!split[i]) {
-        // ignore empty strings
-        continue;
+    var split = (typeof namespaces === 'string' ? namespaces : '').trim().replace(/\s+/g, ',').split(',').filter(Boolean);
+    var _iterator = _createForOfIteratorHelper(split),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var ns = _step.value;
+        if (ns[0] === '-') {
+          createDebug.skips.push(ns.slice(1));
+        } else {
+          createDebug.names.push(ns);
+        }
       }
-      namespaces = split[i].replace(/\*/g, '.*?');
-      if (namespaces[0] === '-') {
-        createDebug.skips.push(new RegExp('^' + namespaces.slice(1) + '$'));
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+  }
+
+  /**
+   * Checks if the given string matches a namespace template, honoring
+   * asterisks as wildcards.
+   *
+   * @param {String} search
+   * @param {String} template
+   * @return {Boolean}
+   */
+  function matchesTemplate(search, template) {
+    var searchIndex = 0;
+    var templateIndex = 0;
+    var starIndex = -1;
+    var matchIndex = 0;
+    while (searchIndex < search.length) {
+      if (templateIndex < template.length && (template[templateIndex] === search[searchIndex] || template[templateIndex] === '*')) {
+        // Match character or proceed with wildcard
+        if (template[templateIndex] === '*') {
+          starIndex = templateIndex;
+          matchIndex = searchIndex;
+          templateIndex++; // Skip the '*'
+        } else {
+          searchIndex++;
+          templateIndex++;
+        }
+      } else if (starIndex !== -1) {
+        // eslint-disable-line no-negated-condition
+        // Backtrack to the last '*' and try to match more characters
+        templateIndex = starIndex + 1;
+        matchIndex++;
+        searchIndex = matchIndex;
       } else {
-        createDebug.names.push(new RegExp('^' + namespaces + '$'));
+        return false; // No match
       }
     }
+
+    // Handle trailing '*' in template
+    while (templateIndex < template.length && template[templateIndex] === '*') {
+      templateIndex++;
+    }
+    return templateIndex === template.length;
   }
 
   /**
@@ -9156,7 +9208,7 @@ function setup(env) {
   * @api public
   */
   function disable() {
-    var namespaces = [].concat(_toConsumableArray(createDebug.names.map(toNamespace)), _toConsumableArray(createDebug.skips.map(toNamespace).map(function (namespace) {
+    var namespaces = [].concat(_toConsumableArray(createDebug.names), _toConsumableArray(createDebug.skips.map(function (namespace) {
       return '-' + namespace;
     }))).join(',');
     createDebug.enable('');
@@ -9171,33 +9223,35 @@ function setup(env) {
   * @api public
   */
   function enabled(name) {
-    if (name[name.length - 1] === '*') {
-      return true;
-    }
-    var i;
-    var len;
-    for (i = 0, len = createDebug.skips.length; i < len; i++) {
-      if (createDebug.skips[i].test(name)) {
-        return false;
+    var _iterator2 = _createForOfIteratorHelper(createDebug.skips),
+      _step2;
+    try {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var skip = _step2.value;
+        if (matchesTemplate(name, skip)) {
+          return false;
+        }
       }
+    } catch (err) {
+      _iterator2.e(err);
+    } finally {
+      _iterator2.f();
     }
-    for (i = 0, len = createDebug.names.length; i < len; i++) {
-      if (createDebug.names[i].test(name)) {
-        return true;
+    var _iterator3 = _createForOfIteratorHelper(createDebug.names),
+      _step3;
+    try {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        var ns = _step3.value;
+        if (matchesTemplate(name, ns)) {
+          return true;
+        }
       }
+    } catch (err) {
+      _iterator3.e(err);
+    } finally {
+      _iterator3.f();
     }
     return false;
-  }
-
-  /**
-  * Convert regexp to namespace
-  *
-  * @param {RegExp} regxep
-  * @return {String} namespace
-  * @api private
-  */
-  function toNamespace(regexp) {
-    return regexp.toString().substring(2, regexp.toString().length - 2).replace(/\.\*\?$/, '*');
   }
 
   /**
@@ -9277,6 +9331,7 @@ var common = setup;
 
     // Is webkit? http://stackoverflow.com/a/16459606/376773
     // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+    // eslint-disable-next-line no-return-assign
     return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance ||
     // Is firebug? http://stackoverflow.com/a/398120/376773
     typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) ||
@@ -9358,7 +9413,7 @@ var common = setup;
   function load() {
     var r;
     try {
-      r = exports.storage.getItem('debug');
+      r = exports.storage.getItem('debug') || exports.storage.getItem('DEBUG');
     } catch (error) {
       // Swallow
       // XXX (@Qix-) should we be logging these?
@@ -9410,7 +9465,7 @@ var common = setup;
 var browserExports = browser.exports;
 
 function ownKeys$1(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread$1(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys$1(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys$1(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _objectSpread$1(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys$1(Object(t), true).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys$1(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 var stream = require$$0;
 var util = require$$1;
 var debug$1 = browserExports('serialport/stream');
@@ -9925,22 +9980,22 @@ function writeAndDrain (data, callback) {
 ```
  */
 SerialPort.prototype.drain = function (callback) {
-  var _this10 = this;
+  var _this0 = this;
   debug$1('drain');
   if (!this.isOpen) {
     debug$1('drain queuing on port open');
     return this.once('open', function () {
-      _this10.drain(callback);
+      _this0.drain(callback);
     });
   }
   this.binding.drain().then(function () {
     debug$1('binding.drain', 'finished');
     if (callback) {
-      callback.call(_this10, null);
+      callback.call(_this0, null);
     }
   }, function (err) {
     debug$1('binding.drain', 'had an error', err);
-    return _this10._error(err, callback);
+    return _this0._error(err, callback);
   });
 };
 
@@ -10013,24 +10068,24 @@ SerialPort.list()
  */
 SerialPort.list = /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee(callback) {
-    return _regeneratorRuntime.wrap(function _callee$(_context) {
+    return _regeneratorRuntime.wrap(function (_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           debug$1('.list');
           if (SerialPort.Binding) {
-            _context.next = 3;
+            _context.next = 1;
             break;
           }
           throw new TypeError('No Binding set on `SerialPort.Binding`');
-        case 3:
+        case 1:
           if (!callback) {
-            _context.next = 5;
+            _context.next = 2;
             break;
           }
           throw new TypeError('SerialPort.list no longer takes a callback and only returns a promise');
-        case 5:
+        case 2:
           return _context.abrupt("return", SerialPort.Binding.list());
-        case 6:
+        case 3:
         case "end":
           return _context.stop();
       }
@@ -10100,28 +10155,28 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "open",
     value: (function () {
       var _open = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee(path, options) {
-        return _regeneratorRuntime.wrap(function _callee$(_context) {
+        return _regeneratorRuntime.wrap(function (_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
               if (path) {
-                _context.next = 2;
+                _context.next = 1;
                 break;
               }
               throw new TypeError('"path" is not a valid port');
-            case 2:
+            case 1:
               if (!(_typeof$1(options) !== 'object')) {
-                _context.next = 4;
+                _context.next = 2;
                 break;
               }
               throw new TypeError('"options" is not an object');
-            case 4:
+            case 2:
               debug('open');
               if (!this.isOpen) {
-                _context.next = 7;
+                _context.next = 3;
                 break;
               }
               throw new Error('Already open');
-            case 7:
+            case 3:
             case "end":
               return _context.stop();
           }
@@ -10142,16 +10197,16 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "close",
     value: (function () {
       var _close = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
-        return _regeneratorRuntime.wrap(function _callee2$(_context2) {
+        return _regeneratorRuntime.wrap(function (_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               debug('close');
               if (this.isOpen) {
-                _context2.next = 3;
+                _context2.next = 1;
                 break;
               }
               throw new Error('Port is not open');
-            case 3:
+            case 1:
             case "end":
               return _context2.stop();
           }
@@ -10176,40 +10231,40 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "read",
     value: (function () {
       var _read = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee3(buffer, offset, length) {
-        return _regeneratorRuntime.wrap(function _callee3$(_context3) {
+        return _regeneratorRuntime.wrap(function (_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
               if (Buffer.isBuffer(buffer)) {
-                _context3.next = 2;
+                _context3.next = 1;
                 break;
               }
               throw new TypeError('"buffer" is not a Buffer');
-            case 2:
+            case 1:
               if (!(typeof offset !== 'number' || isNaN(offset))) {
-                _context3.next = 4;
+                _context3.next = 2;
                 break;
               }
               throw new TypeError("\"offset\" is not an integer got \"".concat(isNaN(offset) ? 'NaN' : _typeof$1(offset), "\""));
-            case 4:
+            case 2:
               if (!(typeof length !== 'number' || isNaN(length))) {
-                _context3.next = 6;
+                _context3.next = 3;
                 break;
               }
               throw new TypeError("\"length\" is not an integer got \"".concat(isNaN(length) ? 'NaN' : _typeof$1(length), "\""));
-            case 6:
+            case 3:
               debug('read');
               if (!(buffer.length < offset + length)) {
-                _context3.next = 9;
+                _context3.next = 4;
                 break;
               }
               throw new Error('buffer is too small');
-            case 9:
+            case 4:
               if (this.isOpen) {
-                _context3.next = 11;
+                _context3.next = 5;
                 break;
               }
               throw new Error('Port is not open');
-            case 11:
+            case 5:
             case "end":
               return _context3.stop();
           }
@@ -10232,23 +10287,23 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "write",
     value: (function () {
       var _write = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee4(buffer) {
-        return _regeneratorRuntime.wrap(function _callee4$(_context4) {
+        return _regeneratorRuntime.wrap(function (_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
               if (Buffer.isBuffer(buffer)) {
-                _context4.next = 2;
+                _context4.next = 1;
                 break;
               }
               throw new TypeError('"buffer" is not a Buffer');
-            case 2:
+            case 1:
               debug('write', buffer.length, 'bytes');
               if (this.isOpen) {
-                _context4.next = 6;
+                _context4.next = 2;
                 break;
               }
               debug('write', 'error port is not open');
               throw new Error('Port is not open');
-            case 6:
+            case 2:
             case "end":
               return _context4.stop();
           }
@@ -10271,28 +10326,28 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "update",
     value: (function () {
       var _update = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee5(options) {
-        return _regeneratorRuntime.wrap(function _callee5$(_context5) {
+        return _regeneratorRuntime.wrap(function (_context5) {
           while (1) switch (_context5.prev = _context5.next) {
             case 0:
               if (!(_typeof$1(options) !== 'object')) {
-                _context5.next = 2;
+                _context5.next = 1;
                 break;
               }
               throw TypeError('"options" is not an object');
-            case 2:
+            case 1:
               if (!(typeof options.baudRate !== 'number')) {
-                _context5.next = 4;
+                _context5.next = 2;
                 break;
               }
               throw new TypeError('"options.baudRate" is not a number');
-            case 4:
+            case 2:
               debug('update');
               if (this.isOpen) {
-                _context5.next = 7;
+                _context5.next = 3;
                 break;
               }
               throw new Error('Port is not open');
-            case 7:
+            case 3:
             case "end":
               return _context5.stop();
           }
@@ -10320,22 +10375,22 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "set",
     value: (function () {
       var _set = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee6(options) {
-        return _regeneratorRuntime.wrap(function _callee6$(_context6) {
+        return _regeneratorRuntime.wrap(function (_context6) {
           while (1) switch (_context6.prev = _context6.next) {
             case 0:
               if (!(_typeof$1(options) !== 'object')) {
-                _context6.next = 2;
+                _context6.next = 1;
                 break;
               }
               throw new TypeError('"options" is not an object');
-            case 2:
+            case 1:
               debug('set');
               if (this.isOpen) {
-                _context6.next = 5;
+                _context6.next = 2;
                 break;
               }
               throw new Error('Port is not open');
-            case 5:
+            case 2:
             case "end":
               return _context6.stop();
           }
@@ -10356,16 +10411,16 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "get",
     value: (function () {
       var _get = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee7() {
-        return _regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return _regeneratorRuntime.wrap(function (_context7) {
           while (1) switch (_context7.prev = _context7.next) {
             case 0:
               debug('get');
               if (this.isOpen) {
-                _context7.next = 3;
+                _context7.next = 1;
                 break;
               }
               throw new Error('Port is not open');
-            case 3:
+            case 1:
             case "end":
               return _context7.stop();
           }
@@ -10387,16 +10442,16 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "getBaudRate",
     value: (function () {
       var _getBaudRate = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee8() {
-        return _regeneratorRuntime.wrap(function _callee8$(_context8) {
+        return _regeneratorRuntime.wrap(function (_context8) {
           while (1) switch (_context8.prev = _context8.next) {
             case 0:
               debug('getbaudRate');
               if (this.isOpen) {
-                _context8.next = 3;
+                _context8.next = 1;
                 break;
               }
               throw new Error('Port is not open');
-            case 3:
+            case 1:
             case "end":
               return _context8.stop();
           }
@@ -10417,16 +10472,16 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
     key: "flush",
     value: (function () {
       var _flush = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee9() {
-        return _regeneratorRuntime.wrap(function _callee9$(_context9) {
+        return _regeneratorRuntime.wrap(function (_context9) {
           while (1) switch (_context9.prev = _context9.next) {
             case 0:
               debug('flush');
               if (this.isOpen) {
-                _context9.next = 3;
+                _context9.next = 1;
                 break;
               }
               throw new Error('Port is not open');
-            case 3:
+            case 1:
             case "end":
               return _context9.stop();
           }
@@ -10446,21 +10501,21 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
   }, {
     key: "drain",
     value: (function () {
-      var _drain = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee10() {
-        return _regeneratorRuntime.wrap(function _callee10$(_context10) {
-          while (1) switch (_context10.prev = _context10.next) {
+      var _drain = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee0() {
+        return _regeneratorRuntime.wrap(function (_context0) {
+          while (1) switch (_context0.prev = _context0.next) {
             case 0:
               debug('drain');
               if (this.isOpen) {
-                _context10.next = 3;
+                _context0.next = 1;
                 break;
               }
               throw new Error('Port is not open');
-            case 3:
+            case 1:
             case "end":
-              return _context10.stop();
+              return _context0.stop();
           }
-        }, _callee10, this);
+        }, _callee0, this);
       }));
       function drain() {
         return _drain.apply(this, arguments);
@@ -10475,16 +10530,16 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
      * @returns {Promise} resolves to an array of port [info objects](#module_serialport--SerialPort.list).
      */
     function () {
-      var _list = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee11() {
-        return _regeneratorRuntime.wrap(function _callee11$(_context11) {
-          while (1) switch (_context11.prev = _context11.next) {
+      var _list = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee1() {
+        return _regeneratorRuntime.wrap(function (_context1) {
+          while (1) switch (_context1.prev = _context1.next) {
             case 0:
               debug('list');
             case 1:
             case "end":
-              return _context11.stop();
+              return _context1.stop();
           }
-        }, _callee11);
+        }, _callee1);
       }));
       function list() {
         return _list.apply(this, arguments);
@@ -10496,10 +10551,10 @@ var AbstractBinding$1 = /*#__PURE__*/function () {
 var lib$1 = AbstractBinding$1;
 
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), true).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _callSuper$2(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct$2() ? Reflect.construct(o, [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _isNativeReflectConstruct$2() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct$2 = function _isNativeReflectConstruct() { return !!t; })(); }
-function _superPropGet(t, e, o, r) { var p = _get(_getPrototypeOf(1 & r ? t.prototype : t), e, o); return 2 & r && "function" == typeof p ? function (t) { return p.apply(o, t); } : p; }
+function _superPropGet(t, o, e, r) { var p = _get(_getPrototypeOf(t.prototype ), o, e); return 2 & r && "function" == typeof p ? function (t) { return p.apply(e, t); } : p; }
 var AbstractBinding = lib$1;
 function cancelError(message) {
   var err = new Error(message);
@@ -10529,25 +10584,25 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
     value: function () {
       var _open = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee(path, opts) {
         var port;
-        return _regeneratorRuntime.wrap(function _callee$(_context) {
+        return _regeneratorRuntime.wrap(function (_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
               port = this.port = path;
-              _context.next = 3;
+              _context.next = 1;
               return _superPropGet(WebSerialBinding, "open", this, 3)([path, opts]);
-            case 3:
+            case 1:
               if (!this.isOpen) {
-                _context.next = 5;
+                _context.next = 2;
                 break;
               }
               throw new Error('Open: binding is already open');
-            case 5:
-              _context.next = 7;
+            case 2:
+              _context.next = 3;
               return port.open(this._getOpenOptions(opts));
-            case 7:
+            case 3:
               port.openOpt = _objectSpread({}, opts);
               this.isOpen = true;
-            case 9:
+            case 4:
             case "end":
               return _context.stop();
           }
@@ -10563,33 +10618,33 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
     value: function () {
       var _close = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee2() {
         var port;
-        return _regeneratorRuntime.wrap(function _callee2$(_context2) {
+        return _regeneratorRuntime.wrap(function (_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               port = this.port;
               if (port) {
-                _context2.next = 3;
+                _context2.next = 1;
                 break;
               }
               throw new Error('already closed');
-            case 3:
-              _context2.next = 5;
+            case 1:
+              _context2.next = 2;
               return _superPropGet(WebSerialBinding, "close", this, 3)([]);
-            case 5:
+            case 2:
               delete port.openOpt;
               this.isOpen = false;
               if (!this.cancelRead) {
-                _context2.next = 10;
+                _context2.next = 3;
                 break;
               }
-              _context2.next = 10;
+              _context2.next = 3;
               return this.cancelRead();
-            case 10:
-              _context2.next = 12;
+            case 3:
+              _context2.next = 4;
               return port.close();
-            case 12:
+            case 4:
               delete this.port;
-            case 13:
+            case 5:
             case "end":
               return _context2.stop();
           }
@@ -10606,50 +10661,50 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
       var _read = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee4(buffer, offset, length) {
         var _this2 = this;
         var reader, op;
-        return _regeneratorRuntime.wrap(function _callee4$(_context4) {
+        return _regeneratorRuntime.wrap(function (_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
               op = _superPropGet(WebSerialBinding, "read", this, 3)([buffer, offset, length]).then(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee3() {
                 var src, _yield$reader$read, value, done, bytesRead;
-                return _regeneratorRuntime.wrap(function _callee3$(_context3) {
+                return _regeneratorRuntime.wrap(function (_context3) {
                   while (1) switch (_context3.prev = _context3.next) {
                     case 0:
                       if (_this2.isOpen) {
-                        _context3.next = 2;
+                        _context3.next = 1;
                         break;
                       }
                       throw cancelError('Read cancelled');
-                    case 2:
+                    case 1:
                       src = _this2.unread;
                       if (src) {
-                        _context3.next = 19;
+                        _context3.next = 6;
                         break;
                       }
                       reader = _this2.port.readable.getReader();
-                      _context3.prev = 5;
-                      _context3.next = 8;
+                      _context3.prev = 2;
+                      _context3.next = 3;
                       return reader.read();
-                    case 8:
+                    case 3:
                       _yield$reader$read = _context3.sent;
                       value = _yield$reader$read.value;
                       done = _yield$reader$read.done;
                       if (!done) {
-                        _context3.next = 13;
+                        _context3.next = 4;
                         break;
                       }
                       return _context3.abrupt("return", {
                         bytesRead: 0,
                         buffer: buffer
                       });
-                    case 13:
+                    case 4:
                       src = value;
-                    case 14:
-                      _context3.prev = 14;
+                    case 5:
+                      _context3.prev = 5;
                       reader.releaseLock();
                       reader = null;
                       _this2.cancelRead = null;
-                      return _context3.finish(14);
-                    case 19:
+                      return _context3.finish(5);
+                    case 6:
                       bytesRead = Math.min(src.length, length);
                       buffer.set(src.subarray(0, bytesRead), offset);
                       _this2.unread = bytesRead < src.length ? src.subarray(bytesRead) : null;
@@ -10657,11 +10712,11 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
                         bytesRead: bytesRead,
                         buffer: buffer
                       });
-                    case 23:
+                    case 7:
                     case "end":
                       return _context3.stop();
                   }
-                }, _callee3, null, [[5,, 14, 19]]);
+                }, _callee3, null, [[2,, 5, 6]]);
               })));
               this.cancelRead = function () {
                 if (reader) {
@@ -10670,7 +10725,7 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
                 return op;
               };
               return _context4.abrupt("return", op);
-            case 3:
+            case 1:
             case "end":
               return _context4.stop();
           }
@@ -10686,43 +10741,43 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
     value: function () {
       var _write = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee6(buffer) {
         var _this3 = this;
-        return _regeneratorRuntime.wrap(function _callee6$(_context6) {
+        return _regeneratorRuntime.wrap(function (_context6) {
           while (1) switch (_context6.prev = _context6.next) {
             case 0:
               if (!this.writeOperation) {
-                _context6.next = 2;
+                _context6.next = 1;
                 break;
               }
               throw new Error('Overlapping writes are not supported and should be queued by the serialport object');
-            case 2:
+            case 1:
               this.writeOperation = _superPropGet(WebSerialBinding, "write", this, 3)([buffer]).then(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee5() {
                 var writer;
-                return _regeneratorRuntime.wrap(function _callee5$(_context5) {
+                return _regeneratorRuntime.wrap(function (_context5) {
                   while (1) switch (_context5.prev = _context5.next) {
                     case 0:
                       if (_this3.isOpen) {
-                        _context5.next = 2;
+                        _context5.next = 1;
                         break;
                       }
                       throw new Error('Write cancelled');
-                    case 2:
+                    case 1:
                       writer = _this3.port.writable.getWriter();
-                      _context5.prev = 3;
-                      _context5.next = 6;
+                      _context5.prev = 2;
+                      _context5.next = 3;
                       return writer.write(buffer);
-                    case 6:
-                      _context5.prev = 6;
+                    case 3:
+                      _context5.prev = 3;
                       writer.releaseLock();
                       _this3.writeOperation = null;
-                      return _context5.finish(6);
-                    case 10:
+                      return _context5.finish(3);
+                    case 4:
                     case "end":
                       return _context5.stop();
                   }
-                }, _callee5, null, [[3,, 6, 10]]);
+                }, _callee5, null, [[2,, 3, 4]]);
               })));
               return _context6.abrupt("return", this.writeOperation);
-            case 4:
+            case 2:
             case "end":
               return _context6.stop();
           }
@@ -10737,7 +10792,7 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
     key: "update",
     value: function () {
       var _update = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee7(opts) {
-        return _regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return _regeneratorRuntime.wrap(function (_context7) {
           while (1) switch (_context7.prev = _context7.next) {
             case 0:
               throw new Error("update() is not supported");
@@ -10756,19 +10811,19 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
     key: "set",
     value: function () {
       var _set = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee8(signals) {
-        return _regeneratorRuntime.wrap(function _callee8$(_context8) {
+        return _regeneratorRuntime.wrap(function (_context8) {
           while (1) switch (_context8.prev = _context8.next) {
             case 0:
-              _context8.next = 2;
+              _context8.next = 1;
               return _superPropGet(WebSerialBinding, "set", this, 3)([signals]);
-            case 2:
-              _context8.next = 4;
+            case 1:
+              _context8.next = 2;
               return this.port.setSignals({
                 dataTerminalReady: signals.dtr,
                 requestToSend: signals.rts,
                 break: signals.brk
               });
-            case 4:
+            case 2:
             case "end":
               return _context8.stop();
           }
@@ -10784,22 +10839,22 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
     value: function () {
       var _get2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee9() {
         var signals;
-        return _regeneratorRuntime.wrap(function _callee9$(_context9) {
+        return _regeneratorRuntime.wrap(function (_context9) {
           while (1) switch (_context9.prev = _context9.next) {
             case 0:
-              _context9.next = 2;
+              _context9.next = 1;
               return _superPropGet(WebSerialBinding, "get", this, 3)([]);
-            case 2:
-              _context9.next = 4;
+            case 1:
+              _context9.next = 2;
               return this.port.getSignals();
-            case 4:
+            case 2:
               signals = _context9.sent;
               return _context9.abrupt("return", {
                 cts: signals.clearToSend,
                 dsr: signals.dataSetReady,
                 dcd: signals.dataCarrierDetect
               });
-            case 6:
+            case 3:
             case "end":
               return _context9.stop();
           }
@@ -10813,21 +10868,21 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
   }, {
     key: "getBaudRate",
     value: function () {
-      var _getBaudRate = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee10() {
-        return _regeneratorRuntime.wrap(function _callee10$(_context10) {
-          while (1) switch (_context10.prev = _context10.next) {
+      var _getBaudRate = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee0() {
+        return _regeneratorRuntime.wrap(function (_context0) {
+          while (1) switch (_context0.prev = _context0.next) {
             case 0:
-              _context10.next = 2;
+              _context0.next = 1;
               return _superPropGet(WebSerialBinding, "getBaudRate", this, 3)([]);
-            case 2:
-              return _context10.abrupt("return", {
+            case 1:
+              return _context0.abrupt("return", {
                 baudRate: this.port.openOpt.baudRate
               });
-            case 3:
+            case 2:
             case "end":
-              return _context10.stop();
+              return _context0.stop();
           }
-        }, _callee10, this);
+        }, _callee0, this);
       }));
       function getBaudRate() {
         return _getBaudRate.apply(this, arguments);
@@ -10837,20 +10892,20 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
   }, {
     key: "flush",
     value: function () {
-      var _flush = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee11() {
-        return _regeneratorRuntime.wrap(function _callee11$(_context11) {
-          while (1) switch (_context11.prev = _context11.next) {
+      var _flush = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee1() {
+        return _regeneratorRuntime.wrap(function (_context1) {
+          while (1) switch (_context1.prev = _context1.next) {
             case 0:
-              _context11.next = 2;
+              _context1.next = 1;
               return _superPropGet(WebSerialBinding, "flush", this, 3)([]);
-            case 2:
+            case 1:
               console.log("flush!");
               // TODO
-            case 3:
+            case 2:
             case "end":
-              return _context11.stop();
+              return _context1.stop();
           }
-        }, _callee11, this);
+        }, _callee1, this);
       }));
       function flush() {
         return _flush.apply(this, arguments);
@@ -10860,20 +10915,20 @@ var lib = /*#__PURE__*/function (_AbstractBinding) {
   }, {
     key: "drain",
     value: function () {
-      var _drain = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee12() {
-        return _regeneratorRuntime.wrap(function _callee12$(_context12) {
-          while (1) switch (_context12.prev = _context12.next) {
+      var _drain = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee10() {
+        return _regeneratorRuntime.wrap(function (_context10) {
+          while (1) switch (_context10.prev = _context10.next) {
             case 0:
-              _context12.next = 2;
+              _context10.next = 1;
               return _superPropGet(WebSerialBinding, "drain", this, 3)([]);
-            case 2:
-              _context12.next = 4;
+            case 1:
+              _context10.next = 2;
               return this.writeOperation;
-            case 4:
+            case 2:
             case "end":
-              return _context12.stop();
+              return _context10.stop();
           }
-        }, _callee12, this);
+        }, _callee10, this);
       }));
       function drain() {
         return _drain.apply(this, arguments);
@@ -10941,21 +10996,9 @@ var timeoutReject = function timeoutReject(delay) {
   });
 };
 var MODES = {
-  INPUT: 0x00,
-  OUTPUT: 0x01,
   ANALOG: 0x02,
   PWM: 0x03,
-  SERVO: 0x04,
-  SHIFT: 0x05,
-  I2C: 0x06,
-  ONEWIRE: 0x07,
-  STEPPER: 0x08,
-  SERIAL: 0x0A,
-  PULLUP: 0x0B,
-  IGNORE: 0x7F,
-  PING_READ: 0x75,
-  UNKNOWN: 0x10
-};
+  SERVO: 0x04};
 
 /**
  * This represents an Arduino board.
@@ -11084,13 +11127,13 @@ var ArduinoBoard = /*#__PURE__*/function (_EventEmitter) {
     value: (function () {
       var _openSerialPort = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime.mark(function _callee(options) {
         var nativePort, port;
-        return _regeneratorRuntime.wrap(function _callee$(_context) {
+        return _regeneratorRuntime.wrap(function (_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
               nativePort = null;
-              _context.next = 3;
+              _context.next = 1;
               return navigator.serial.requestPort(options);
-            case 3:
+            case 1:
               nativePort = _context.sent;
               // const permittedPorts = await navigator.serial.getPorts();
               // if ((permittedPorts !== null) && (Array.isArray(permittedPorts)) && (permittedPorts.length > 0)) {
@@ -11106,7 +11149,7 @@ var ArduinoBoard = /*#__PURE__*/function (_EventEmitter) {
               });
               this.portInfo = port.path.getInfo();
               return _context.abrupt("return", port);
-            case 8:
+            case 2:
             case "end":
               return _context.stop();
           }
@@ -11522,7 +11565,7 @@ var ArduinoBoard = /*#__PURE__*/function (_EventEmitter) {
       return 'RELEASED';
     }
   }]);
-}(EventEmitter$1);
+}(EventEmitter);
 
 function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
@@ -11576,7 +11619,9 @@ var ArduinoConnector = /*#__PURE__*/function (_EventEmitter) {
     key: "findBoard",
     value: function findBoard(options) {
       if (this.boards.length === 0) return;
-      if (!options || !options.filters) return this.boards[0];
+      if (!options || !options.filters) return this.boards.find(function (aBoard) {
+        return aBoard.isConnected();
+      });
       return this.boards.find(function (aBoard) {
         return aBoard.isConnected() && options.filters.some(function (filter) {
           return filter.usbVendorId === aBoard.portInfo.usbVendorId && filter.usbProductId === aBoard.portInfo.usbProductId;
@@ -11605,7 +11650,7 @@ var ArduinoConnector = /*#__PURE__*/function (_EventEmitter) {
       var indexOfRemoval = this.boards.indexOf(removal);
       if (indexOfRemoval < 0) return; // not found
       this.boards.splice(indexOfRemoval, 1);
-      this.emit(ArduinoConnector.BOARD_ADDED, removal);
+      this.emit(ArduinoConnector.BOARD_REMOVED, removal);
     }
 
     /**
@@ -11665,7 +11710,7 @@ var ArduinoConnector = /*#__PURE__*/function (_EventEmitter) {
       return 'BOARD_ADDED';
     }
   }]);
-}(EventEmitter$1);
+}(EventEmitter);
 
 /**
  * Return a shared Arduino connector object
@@ -11950,7 +11995,7 @@ var ArduinoBlocks = /*#__PURE__*/function () {
           blockType: BlockType$1.COMMAND,
           text: formatMessage({
             id: 'xcxArduino.setAnalogLevel',
-            default: 'PWM [PIN] set duty cycle [LEVEL] %',
+            default: 'Analog [PIN] set power [LEVEL] %',
             description: 'set analog level of the pin'
           }),
           arguments: {

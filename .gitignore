@@ -3,3 +3,5 @@ node_modules/
 src/vm/*
 !src/vm/extensions/
 !src/vm/.*
+
+scratch-vm/*

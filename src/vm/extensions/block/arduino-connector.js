@@ -61,7 +61,7 @@ export class ArduinoConnector extends EventEmitter {
      */
     findBoard (options) {
         if (this.boards.length === 0) return;
-        if (!options || !options.filters) return this.boards[0];
+        if (!options || !options.filters) return this.boards.find(aBoard => aBoard.isConnected());
         return this.boards.find(aBoard => (aBoard.isConnected() && options.filters.some(filter =>
             ((filter.usbVendorId === aBoard.portInfo.usbVendorId) &&
                     (filter.usbProductId === aBoard.portInfo.usbProductId)))));
@@ -84,7 +84,7 @@ export class ArduinoConnector extends EventEmitter {
         const indexOfRemoval = this.boards.indexOf(removal);
         if (indexOfRemoval < 0) return; // not found
         this.boards.splice(indexOfRemoval, 1);
-        this.emit(ArduinoConnector.BOARD_ADDED, removal);
+        this.emit(ArduinoConnector.BOARD_REMOVED, removal);
     }
 
     /**

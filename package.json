@@ -34,8 +34,9 @@
     "rollup-plugin-polyfill-node": "^0.13.0"
   },
   "dependencies": {
+    "@babel/runtime": "^7.29.2",
     "@serialport/stream": "^9.2.4",
-    "firmata-io": "https://gitpkg.now.sh/yokobond/firmata.js/packages/firmata-io?xcx-g2s",
+    "firmata-io": "^2.3.0",
     "web-serial-binding": "github:jaz303/web-serial-binding"
   }
 }

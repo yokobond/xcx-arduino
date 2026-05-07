@@ -316,7 +316,7 @@ class ArduinoBlocks {
                     blockType: BlockType.COMMAND,
                     text: formatMessage({
                         id: 'xcxArduino.setAnalogLevel',
-                        default: 'PWM [PIN] set duty cycle [LEVEL] %',
+                        default: 'Analog [PIN] set power [LEVEL] %',
                         description: 'set analog level of the pin'
                     }),
                     arguments: {
